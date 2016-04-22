@@ -1,13 +1,21 @@
 {
   "name": "webpack-lmpe-plugin",
   "version": "0.0.1",
-  "description": "",
+  "description": "Webpack lazy module parse and evaluation.",
+  "author": "Mihai Slobozeanu <mihaislobozeanu@gmail.com>",
+  "contributors": [],
   "main": "index.js",
-  "author": "",
-  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mihaislobozeanu/webpack-lmpe-plugin.git"
+  },
   "dependencies": {
     "uglify-js": "^2.6.2",
     "webpack": "^1.13.0",
     "webpack-core": "^0.6.8"
+  },
+  "license": "MIT",
+  "publishConfig":{
+    "registry":"http://registry.npmjs.org/"
   }
 }
