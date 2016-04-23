@@ -1,3 +1,4 @@
 /publish.cmd
 /npm-debug.log
 node_modules
+.idea

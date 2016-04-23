@@ -42,6 +42,7 @@ function LmpeTemplatePlugin(compilation, options){
 	this.compilation = compilation;
 	this.sourceMapComment = options.sourceMapComment || '//# sourceMappingURL=[url]';
 	this.moduleFilenameTemplate = options.moduleFilenameTemplate || 'lmpe:///[resource-path]?[hash]';
+	options.test = options.test || /\.js($|\?)/i;
 	this.options = options;
 }
 
@@ -49,6 +50,9 @@ LmpeTemplatePlugin.prototype.apply = function(moduleTemplate){
 	var self = this,
 		options = this.options;
 	moduleTemplate.plugin('module', function(source, module){
+		if(!ModuleFilenameHelpers.matchObject.bind(undefined, options))
+			return source;
+
 		if(source.__LmpeData)
 			return source.__LmpeData;
 

@@ -1,6 +1,6 @@
 {
   "name": "webpack-lmpe-plugin",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Webpack lazy module parse and evaluation.",
   "author": "Mihai Slobozeanu <mihaislobozeanu@gmail.com>",
   "contributors": [],
