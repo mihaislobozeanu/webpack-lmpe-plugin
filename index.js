@@ -49,8 +49,9 @@ function LmpeTemplatePlugin(compilation, options){
 LmpeTemplatePlugin.prototype.apply = function(moduleTemplate){
 	var self = this,
 		options = this.options;
+
 	moduleTemplate.plugin('module', function(source, module){
-		if(!ModuleFilenameHelpers.matchObject.bind(undefined, options))
+		if(!module.request || !ModuleFilenameHelpers.matchObject(options, module.request))
 			return source;
 
 		if(source.__LmpeData)
@@ -68,8 +69,9 @@ LmpeTemplatePlugin.prototype.apply = function(moduleTemplate){
 		var file = module.id + '.js';
 		var oldWarnFunction = uglify.AST_Node.warn_function;
 		var warnings = [];
+		requestShortener = this.requestShortener;
 		try{
-			if(options.sourceMap){
+			if(options.sourceMap && inputSourceMap){
 				// Clone (flat) the sourcemap to ensure that the mutations below do not persist.
 				inputSourceMap = Object.keys(inputSourceMap).reduce(function(obj, key){
 					obj[key] = inputSourceMap[key];
@@ -82,7 +84,7 @@ LmpeTemplatePlugin.prototype.apply = function(moduleTemplate){
 						return module || source;
 					});
 					var moduleFilenames = modules.map(function(module){
-						return ModuleFilenameHelpers.createFilename(module, self.moduleFilenameTemplate, this.requestShortener);
+						return ModuleFilenameHelpers.createFilename(module, self.moduleFilenameTemplate, requestShortener);
 					}, this);
 					moduleFilenames = ModuleFilenameHelpers.replaceDuplicates(moduleFilenames, function(filename, i, n){
 						for(var j = 0; j < n; j++)
@@ -92,7 +94,7 @@ LmpeTemplatePlugin.prototype.apply = function(moduleTemplate){
 					inputSourceMap.sources = moduleFilenames;
 					if(inputSourceMap.sourcesContent){
 						inputSourceMap.sourcesContent = inputSourceMap.sourcesContent.map(function(content, i){
-							return content + '\n\n\n' + ModuleFilenameHelpers.createFooter(modules[i], this.requestShortener);
+							return content + '\n\n\n' + ModuleFilenameHelpers.createFooter(modules[i], requestShortener);
 						}, this);
 					}
 				}
@@ -141,7 +143,7 @@ LmpeTemplatePlugin.prototype.apply = function(moduleTemplate){
 			for(var k in options.output){
 				output[k] = options.output[k];
 			}
-			if(options.sourceMap !== false){
+			if(options.sourceMap && inputSourceMap){
 				var outSourceMap = uglify.SourceMap({
 					file: file,
 					root: ''
@@ -161,19 +163,20 @@ LmpeTemplatePlugin.prototype.apply = function(moduleTemplate){
 
 				var footer = '\n' + self.sourceMapComment.replace(/\[url\]/g, 'data:application/json;base64,' + new Buffer(JSON.stringify(sourceMap)).toString('base64'));
 				stream = stream + footer;
-				stream = 'eval(' + JSON.stringify(stream) + ');'
 			}
+			stream = 'eval(' + JSON.stringify(stream) + ');'
 
 			source.__LmpeData = (!options.lazyEval && outSourceMap ?
 				new SourceMapSource(stream, file, JSON.parse(outSourceMap), content, inputSourceMap) :
 				new RawSource(stream));
 
-			//source.__LmpeData = new RawSource(stream);
 			if(warnings.length > 0){
 				self.compilation.warnings.push(new Error(file + ' from Lmpe\n' + warnings.join('\n')));
 			}
 			return source.__LmpeData;
 		}catch(err){
+			console.log(module);
+			console.log(err.stack);
 			if(err.line){
 				var original = inputSourceMapConsumer && inputSourceMapConsumer.originalPositionFor({
 						line: err.line,
